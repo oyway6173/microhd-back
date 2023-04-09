@@ -1,12 +1,26 @@
 import os, gridfs, pika, json
 from flask import Flask, request, send_file
-from flask_pymongo import PyMongo 
+from flask_cors import CORS, cross_origin
+from flask_pymongo import PyMongo
 from auth import validate
 from auth_svc import access
 from storage import util
 from bson.objectid import ObjectId
 
 server = Flask(__name__)
+
+config = {
+  'ORIGINS': [
+    'http://localhost:3000', 
+    'http://localhost:8081',  # React
+    'http://127.0.0.1:3000',  # React
+  ],
+
+  'SECRET_KEY': '...'
+}
+
+CORS(server, resources={ r'/*': {'origins': config['ORIGINS']}}, supports_credentials=True)
+
 
 mongo_video = PyMongo(
         server,

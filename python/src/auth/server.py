@@ -1,5 +1,5 @@
 import jwt, datetime, os
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
 
 server = Flask(__name__)
@@ -26,18 +26,23 @@ def login():
     #check db for username and password
     cur = mysql.connection.cursor()
     res = cur.execute(
-        "SELECT email, password FROM user WHERE email=%s", (auth.username,)
+        "SELECT email, password, role FROM user WHERE email=%s", (auth.username,)
     )
 
     if res > 0:
         user_row = cur.fetchone()
         email = user_row[0]
         password = user_row[1]
+        role = user_row[2]
 
         if auth.username != email or auth.password != password:
             return "invalid credentials", 401
+        elif role == 'admin':
+            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), True, "admin"))
+        elif role == 'user':
+            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), False, 'user'))
         else:
-            return createJWT(auth.username, os.environ.get("JWT_SECRET"), True)
+            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), False, 'worker'))
     else: 
         return "invalid credentials", 401
     
@@ -59,14 +64,15 @@ def validate():
     
     return decoded, 200
     
-def createJWT(username, secret, authz):
+def createJWT(username, secret, authz, role):
     return jwt.encode(
         {
             "username": username,
             "exp": datetime.datetime.now(tz=datetime.timezone.utc)
-            + datetime.timedelta(days=1),
+            + datetime.timedelta(hours=2),
             "iat": datetime.datetime.utcnow(),
             "admin": authz,
+            "role": role
         },
         secret,
         algorithm="HS256",
