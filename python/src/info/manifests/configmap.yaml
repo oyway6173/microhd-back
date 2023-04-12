@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: info-configmap
+data:
+  INFO_QUEUE: "info"
+  MYSQL_HOST: host.minikube.internal
+  MYSQL_USER: auth_user
+  MYSQL_DB: info_db_srv
+  MYSQL_PORT: "3306"

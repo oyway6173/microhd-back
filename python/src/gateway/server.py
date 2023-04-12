@@ -5,6 +5,8 @@ from flask_pymongo import PyMongo
 from auth import validate
 from auth_svc import access
 from storage import util
+from infostorage import infostorage
+from infostorage import info_rpc_client
 from bson.objectid import ObjectId
 
 server = Flask(__name__)
@@ -93,6 +95,29 @@ def download():
             return "internal server error", 500
 
     return "not authorized", 401
+
+@server.route("/dash", methods=["POST"])
+def dash():
+    access, err = validate.token(request)
+
+    route = "dash"
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+
+    if access["admin"]:
+        
+        noterr = info_rpc_client.InfoRpcClient()
+        err = noterr.call(30)
+
+        if err:
+            return err
+        
+        return "success!", 200
+    else:
+        return "not authorized", 401
 
 if __name__ == "__main__":
     server.run(host="0.0.0.0", port=8080)

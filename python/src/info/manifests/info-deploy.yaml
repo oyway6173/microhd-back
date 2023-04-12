@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: info
+  labels: 
+    app: info
+spec: 
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: info
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 8
+  template: 
+    metadata:
+      labels:
+        app: info
+    spec: 
+      containers:
+        - name: info
+          image: oyway6173/info
+          envFrom:
+            - configMapRef:
+                name: info-configmap
+            - secretRef:
+                name: info-secret
