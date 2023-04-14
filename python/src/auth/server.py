@@ -26,7 +26,7 @@ def login():
     #check db for username and password
     cur = mysql.connection.cursor()
     res = cur.execute(
-        "SELECT email, password, role FROM user WHERE email=%s", (auth.username,)
+        "SELECT email, password, role, uid FROM user WHERE email=%s", (auth.username,)
     )
 
     if res > 0:
@@ -34,15 +34,16 @@ def login():
         email = user_row[0]
         password = user_row[1]
         role = user_row[2]
+        id = user_row[3]
 
         if auth.username != email or auth.password != password:
             return "invalid credentials", 401
         elif role == 'admin':
-            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), True, "admin"))
+            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), True, "admin", id))
         elif role == 'user':
-            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), False, 'user'))
+            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), False, 'user', id))
         else:
-            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), True, 'worker'))
+            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), True, 'worker', id))
     else: 
         return "invalid credentials", 401
     
@@ -64,7 +65,7 @@ def validate():
     
     return decoded, 200
     
-def createJWT(username, secret, authz, role):
+def createJWT(username, secret, authz, role, id):
     return jwt.encode(
         {
             "username": username,
@@ -72,7 +73,8 @@ def createJWT(username, secret, authz, role):
             + datetime.timedelta(hours=2),
             "iat": datetime.datetime.utcnow(),
             "admin": authz,
-            "role": role
+            "role": role,
+            "uid": id,
         },
         secret,
         algorithm="HS256",

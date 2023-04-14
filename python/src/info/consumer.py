@@ -1,15 +1,18 @@
-import pika, sys, os, time
+import pika, sys, os, time, json
 from flask import Flask, request, jsonify
-from flask_mysqldb import MySQL
+# from flask_mysqldb import MySQL
+from dash import info_to_dash
+from flaskext.mysql import MySQL
 
 server = Flask(__name__)
-mysql = MySQL(server)
+mysql = MySQL()
+mysql.init_app(server)
 
-server.config["MYSQL_HOST"] = os.environ.get("MYSQL_HOST")
-server.config["MYSQL_USER"] = os.environ.get("MYSQL_USER")
-server.config["MYSQL_PASSWORD"] = os.environ.get("MYSQL_PASSWORD")
-server.config["MYSQL_DB"] = os.environ.get("MYSQL_DB")
-server.config["MYSQL_PORT"] = int(os.environ.get("MYSQL_PORT"))
+server.config["MYSQL_DATABASE_HOST"] = os.environ.get("MYSQL_HOST")
+server.config["MYSQL_DATABASE_USER"] = os.environ.get("MYSQL_USER")
+server.config["MYSQL_DATABASE_PASSWORD"] = os.environ.get("MYSQL_PASSWORD")
+server.config["MYSQL_DATABASE_DB"] = os.environ.get("MYSQL_DB")
+server.config["MYSQL_DATABASE_PORT"] = int(os.environ.get("MYSQL_PORT"))
 
 
 def main():
@@ -21,10 +24,15 @@ def main():
     channel = connection.channel()
 
     def callback(ch, method, properties, body):
-        response = {
-                    "cpu": 14,
-                    "memory": 88
-                } 
+        
+        message = json.loads(body)
+
+        response = {}
+
+        match message['route']:
+            case "/dash":
+                response = info_to_dash.start(message["uid"])
+
         ch.basic_publish(exchange='',
                      routing_key=str(properties.reply_to),
                      properties=pika.BasicProperties(correlation_id = \

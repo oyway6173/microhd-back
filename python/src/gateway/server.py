@@ -100,8 +100,6 @@ def download():
 def dash():
     access, err = validate.token(request)
 
-    route = "dash"
-
     if err: 
         return err
 
@@ -110,7 +108,7 @@ def dash():
     if access["admin"]:
         
         noterr = info_rpc_client.InfoRpcClient()
-        err = noterr.call(30)
+        err = noterr.call(request.path, access)
 
         if err:
             return err

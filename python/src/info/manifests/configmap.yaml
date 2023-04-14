@@ -5,6 +5,6 @@ metadata:
 data:
   INFO_QUEUE: "info"
   MYSQL_HOST: host.minikube.internal
-  MYSQL_USER: auth_user
-  MYSQL_DB: info_db_srv
+  MYSQL_USER: info_user
+  MYSQL_DB: info_srv_db
   MYSQL_PORT: "3306"
