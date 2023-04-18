@@ -1,3 +1,6 @@
-from flask_mysqldb import MySQL
+from flaskext.mysql import MySQL
 
-mysql = MySQL()
+def init(server):
+    mysql = MySQL()
+    mysql.init_app(server)
+    return mysql

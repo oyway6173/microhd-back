@@ -42,8 +42,10 @@ def login():
             return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), True, "admin", id))
         elif role == 'user':
             return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), False, 'user', id))
-        else:
+        elif role == 'worker':
             return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), True, 'worker', id))
+        else: 
+            return jsonify(access_token=createJWT(auth.username, os.environ.get("JWT_SECRET"), True, role, id))
     else: 
         return "invalid credentials", 401
     

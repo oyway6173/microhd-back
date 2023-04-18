@@ -5,6 +5,10 @@ from consumer import mysql
 kd_graph = { 0: 'x', 1: 'y'}
 kd_recent_tickets = { 0: 'txId', 1: 'user', 2: 'date', 3: 'priority'}
 kd_recent_rating = { 0: 'intime', 1: 'expired', 2: 'position'}
+kd_tickets = {0: 'id', 1: 'number', 2: 'customer', 3: 'summary', 4: 'status', 5: 'priority', 6: 'assignee', 7: 'dep'}
+kd_ReturnFaqList = { 0: 'header', 1: 'descr'}
+kd_rating = { 0: 'uID', 1: 'user', 2: 'koef', 3: 'zone' }
+kd_PersRating = { 0: 'return', 1: 'expired', 2: 'taken', 3: 'frod', 4: 'intime' }
 
 def merge(dict1, dict2):
     res = {**dict1, **dict2}
@@ -20,7 +24,7 @@ def replace_keys(old_dict, key_dict):
             new_dict[new_key] = old_dict[key]
     return new_dict
 
-def start(uid):
+def dash(uid):
     
     result = {
         "ticketNum": "none",
@@ -121,8 +125,117 @@ def start(uid):
         data = replace_keys(data, kd_recent_rating)
         data = { "ReturnLastMonthRatingData" : data}
         result = merge(result, data) 
-        return result 
+        return json.dumps(result) 
     else: 
         data = {"ReturnLastMonthRatingData" : "none"}
+        result = merge(result, data)
+        return result 
+    
+def tickets(uid, role):
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    match role:
+        case "admin":
+            cur.callproc('ReturnAllTickets')
+            df_sql_data = pd.DataFrame(cur.fetchall())
+            if not df_sql_data.empty:
+                data = df_sql_data.to_dict('index')
+                data = replace_keys(data, kd_tickets)
+                data = { "ReturnAllTickets" : data}
+                result = merge(result, data)
+                return json.dumps(result) 
+            else: 
+                data = {"ReturnAllTickets" : "none"}
+                result = merge(result, data)
+                return result 
+        case "worker":
+            cur.callproc('ReturnAllTicketsByExecutor', [uid])
+            df_sql_data = pd.DataFrame(cur.fetchall())
+            if not df_sql_data.empty:
+                data = df_sql_data.to_dict('index')
+                data = replace_keys(data, kd_tickets)
+                data = { "ReturnAllTicketsByExecutor" : data}
+                result = merge(result, data)
+                return json.dumps(result) 
+            else: 
+                data = {"ReturnAllTicketsByExecutor" : "none"}
+                result = merge(result, data)
+                return result 
+        case "user":
+            cur.callproc('ReturnAllTicketsByInitiator', [uid])
+            df_sql_data = pd.DataFrame(cur.fetchall())
+            if not df_sql_data.empty:
+                data = df_sql_data.to_dict('index')
+                data = replace_keys(data, kd_tickets)
+                data = { "ReturnAllTicketsByInitiator" : data}
+                result = merge(result, data)
+                return json.dumps(result) 
+            else: 
+                data = {"ReturnAllTicketsByInitiator" : "none"}
+                result = merge(result, data)
+                return result 
+            
+def faq():
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    cur.callproc('ReturnFaqList')
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd_ReturnFaqList)
+        data = { "ReturnFaqList" : data}
+        result = merge(result, data)
+        return json.dumps(result) 
+    else: 
+        data = {"ReturnFaqList" : "none"}
+        result = merge(result, data)
+        return result 
+    
+def rating(uid):
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    cur.callproc('ReturnCurrRatingList')
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd_rating)
+        data = { "ReturnCurrRatingList" : data}
+        result = merge(result, data)
+    else: 
+        data = {"ReturnCurrRatingList" : "none"}
+        result = merge(result, data)
+        return result 
+    
+    cur.callproc('ReturnOldRatingList')
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd_rating)
+        data = { "ReturnOldRatingList" : data}
+        result = merge(result, data)
+    else: 
+        data = {"ReturnOldRatingList" : "none"}
+        result = merge(result, data)
+        return result 
+    
+    cur.callproc('ReturnRatingStatByUser', [uid])
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd_PersRating)
+        data = { "ReturnRatingStatByUser" : data}
+        result = merge(result, data)
+        return json.dumps(result) 
+    else: 
+        data = {"ReturnRatingStatByUser" : "none"}
         result = merge(result, data)
         return result 

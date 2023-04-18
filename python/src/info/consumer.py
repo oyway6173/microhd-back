@@ -29,9 +29,20 @@ def main():
 
         response = {}
 
+        # if message['route'] == '/dash':
+        #     response = info_to_dash.start(message["uid"])
+        # elif message['route'] == '/tickets':
+        #     response = info_to_tickets.start(message["uid"], message["role"])
+
         match message['route']:
-            case "/dash":
-                response = info_to_dash.start(message["uid"])
+            case '/dash':
+                response = info_to_dash.dash(message["uid"])
+            case "/tickets":
+                response = info_to_dash.tickets(message["uid"], message["role"])
+            case "/faq":
+                response = info_to_dash.faq()
+            case '/rating':
+                response = info_to_dash.rating(message["uid"])
 
         ch.basic_publish(exchange='',
                      routing_key=str(properties.reply_to),

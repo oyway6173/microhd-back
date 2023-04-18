@@ -109,13 +109,64 @@ def dash():
         
         noterr = info_rpc_client.InfoRpcClient()
         err = noterr.call(request.path, access)
-
         if err:
             return err
         
-        return "success!", 200
+        # return "success!", 200
     else:
         return "not authorized", 401
+    
+@server.route("/tickets", methods=["POST"])
+def tickets():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case 'admin' | 'user' | 'worker':
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+        case _:
+            return "not authorized", 401
+
+@server.route("/faq", methods=["POST"])
+def faq():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case _:
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+
+@server.route("/rating", methods=["POST"])
+def rating():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case 'admin' | 'worker':
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+        case 'user':
+            return "not authorized", 401
 
 if __name__ == "__main__":
     server.run(host="0.0.0.0", port=8080)

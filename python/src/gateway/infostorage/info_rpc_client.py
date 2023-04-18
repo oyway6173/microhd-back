@@ -1,7 +1,6 @@
 import pika, json
 import uuid
 
-
 class InfoRpcClient(object):
 
     def __init__(self):
@@ -29,6 +28,7 @@ class InfoRpcClient(object):
         message = {
             "route": route, 
             "uid": access["uid"],
+            "role": access["role"]
             }
         self.response = None
         self.corr_id = str(uuid.uuid4())
