@@ -5,8 +5,8 @@ from flask_pymongo import PyMongo
 from auth import validate
 from auth_svc import access
 from storage import util
-from infostorage import infostorage
 from infostorage import info_rpc_client
+from sender import to_user_mnt_srv
 from bson.objectid import ObjectId
 
 server = Flask(__name__)
@@ -167,6 +167,137 @@ def rating():
                 return err
         case 'user':
             return "not authorized", 401
+        
+@server.route("/profile", methods=["POST"])
+def profile():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case 'admin' | 'user' | 'worker':
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+        case _:
+            return "not authorized", 401
+        
+@server.route("/users", methods=["POST"])
+def users():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case 'admin':
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+        case _:
+            return "not authorized", 401
+    
+@server.route("/roles", methods=["POST"])
+def roles():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case 'admin':
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+        case _:
+            return "not authorized", 401
+
+@server.route("/deps", methods=["POST"])
+def deps():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case 'admin':
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+        case _:
+            return "not authorized", 401
+        
+@server.route("/statuses", methods=["POST"])
+def statuses():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case 'admin':
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+        case _:
+            return "not authorized", 401
+        
+@server.route("/priorities", methods=["POST"])
+def priorities():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+    
+    match access["role"]:
+        case 'admin':
+            noterr = info_rpc_client.InfoRpcClient()
+            err = noterr.call(request.path, access)
+            if err:
+                return err
+        case _:
+            return "not authorized", 401
+
+@server.route("/users/mnt", methods=["POST", "DELETE", "UPDATE"])
+def users_mnt():
+    access, err = validate.token(request)
+
+    if err: 
+        return err
+
+    access = json.loads(access)
+
+    match access["role"]:
+        case 'admin':
+            if request.method == "POST":
+                err = to_user_mnt_srv.send("create", access, request.form, channel)
+                if err:
+                    return err
+                return "success!", 200
+            else: 
+                return "method not allowed", 405
+        case _:
+            return "not authorized", 401
+
+
 
 if __name__ == "__main__":
     server.run(host="0.0.0.0", port=8080)

@@ -2,13 +2,13 @@ import pika, json, os
 import pandas as pd
 from consumer import mysql
 
-kd_graph = { 0: 'x', 1: 'y'}
-kd_recent_tickets = { 0: 'txId', 1: 'user', 2: 'date', 3: 'priority'}
-kd_recent_rating = { 0: 'intime', 1: 'expired', 2: 'position'}
-kd_tickets = {0: 'id', 1: 'number', 2: 'customer', 3: 'summary', 4: 'status', 5: 'priority', 6: 'assignee', 7: 'dep'}
-kd_ReturnFaqList = { 0: 'header', 1: 'descr'}
-kd_rating = { 0: 'uID', 1: 'user', 2: 'koef', 3: 'zone' }
-kd_PersRating = { 0: 'return', 1: 'expired', 2: 'taken', 3: 'frod', 4: 'intime' }
+# kd_graph = { 0: 'x', 1: 'y'}
+# kd_recent_tickets = { 0: 'txId', 1: 'user', 2: 'date', 3: 'priority'}
+# kd_recent_rating = { 0: 'intime', 1: 'expired', 2: 'position'}
+# kd_tickets = {0: 'id', 1: 'number', 2: 'customer', 3: 'summary', 4: 'status', 5: 'priority', 6: 'assignee', 7: 'dep'}
+# kd_ReturnFaqList = { 0: 'header', 1: 'descr'}
+# kd_rating = { 0: 'uID', 1: 'user', 2: 'koef', 3: 'zone' }
+# kd_PersRating = { 0: 'return', 1: 'expired', 2: 'taken', 3: 'frod', 4: 'intime' }
 
 def merge(dict1, dict2):
     res = {**dict1, **dict2}
@@ -26,6 +26,8 @@ def replace_keys(old_dict, key_dict):
 
 def dash(uid):
     
+    kd = { 0: 'x', 1: 'y'}
+
     result = {
         "ticketNum": "none",
         "workTicketNum":  "none",
@@ -55,7 +57,7 @@ def dash(uid):
 
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_graph)
+        data = replace_keys(data, kd)
         data = { "ReturnNumberOfClosedTicketsByDepEachMonth" : data}
         result = merge(result, data)
     else: 
@@ -69,7 +71,7 @@ def dash(uid):
     
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_graph)
+        data = replace_keys(data, kd)
         data = { "ReturnNumberOfClosedTicketsByUserEachMonth" : data}
         result = merge(result, data)
         
@@ -84,7 +86,7 @@ def dash(uid):
     
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_graph)
+        data = replace_keys(data, kd)
         data = { "ReturnNumberOfCreatedTicketsByDepEachMonth" : data}
         result = merge(result, data) 
     else: 
@@ -106,9 +108,11 @@ def dash(uid):
 
     df_sql_data = pd.DataFrame(cur.fetchall())
     
+    kd = { 0: 'txId', 1: 'user', 2: 'date', 3: 'priority'}
+
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_recent_tickets)
+        data = replace_keys(data, kd)
         data = { "ReturnLastMonthTicketsByDep" : data}
         result = merge(result, data) 
     else: 
@@ -120,9 +124,11 @@ def dash(uid):
 
     df_sql_data = pd.DataFrame(cur.fetchall())
     
+    kd = { 0: 'intime', 1: 'expired', 2: 'position'}
+
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_recent_rating)
+        data = replace_keys(data, kd)
         data = { "ReturnLastMonthRatingData" : data}
         result = merge(result, data) 
         return json.dumps(result) 
@@ -137,13 +143,15 @@ def tickets(uid, role):
     
     cur = mysql.connect().cursor()
 
+    kd = {0: 'id', 1: 'number', 2: 'customer', 3: 'summary', 4: 'status', 5: 'priority', 6: 'assignee', 7: 'dep'}
+
     match role:
         case "admin":
             cur.callproc('ReturnAllTickets')
             df_sql_data = pd.DataFrame(cur.fetchall())
             if not df_sql_data.empty:
                 data = df_sql_data.to_dict('index')
-                data = replace_keys(data, kd_tickets)
+                data = replace_keys(data, kd)
                 data = { "ReturnAllTickets" : data}
                 result = merge(result, data)
                 return json.dumps(result) 
@@ -156,7 +164,7 @@ def tickets(uid, role):
             df_sql_data = pd.DataFrame(cur.fetchall())
             if not df_sql_data.empty:
                 data = df_sql_data.to_dict('index')
-                data = replace_keys(data, kd_tickets)
+                data = replace_keys(data, kd)
                 data = { "ReturnAllTicketsByExecutor" : data}
                 result = merge(result, data)
                 return json.dumps(result) 
@@ -169,7 +177,7 @@ def tickets(uid, role):
             df_sql_data = pd.DataFrame(cur.fetchall())
             if not df_sql_data.empty:
                 data = df_sql_data.to_dict('index')
-                data = replace_keys(data, kd_tickets)
+                data = replace_keys(data, kd)
                 data = { "ReturnAllTicketsByInitiator" : data}
                 result = merge(result, data)
                 return json.dumps(result) 
@@ -184,11 +192,13 @@ def faq():
     
     cur = mysql.connect().cursor()
 
+    kd = { 0: 'header', 1: 'descr'}
+
     cur.callproc('ReturnFaqList')
     df_sql_data = pd.DataFrame(cur.fetchall())
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_ReturnFaqList)
+        data = replace_keys(data, kd)
         data = { "ReturnFaqList" : data}
         result = merge(result, data)
         return json.dumps(result) 
@@ -203,11 +213,13 @@ def rating(uid):
     
     cur = mysql.connect().cursor()
 
+    kd = { 0: 'uID', 1: 'user', 2: 'koef', 3: 'zone' }
+
     cur.callproc('ReturnCurrRatingList')
     df_sql_data = pd.DataFrame(cur.fetchall())
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_rating)
+        data = replace_keys(data, kd)
         data = { "ReturnCurrRatingList" : data}
         result = merge(result, data)
     else: 
@@ -219,7 +231,7 @@ def rating(uid):
     df_sql_data = pd.DataFrame(cur.fetchall())
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_rating)
+        data = replace_keys(data, kd)
         data = { "ReturnOldRatingList" : data}
         result = merge(result, data)
     else: 
@@ -227,15 +239,143 @@ def rating(uid):
         result = merge(result, data)
         return result 
     
+    kd = { 0: 'return', 1: 'expired', 2: 'taken', 3: 'frod', 4: 'intime' }
+
     cur.callproc('ReturnRatingStatByUser', [uid])
     df_sql_data = pd.DataFrame(cur.fetchall())
     if not df_sql_data.empty:
         data = df_sql_data.to_dict('index')
-        data = replace_keys(data, kd_PersRating)
+        data = replace_keys(data, kd)
         data = { "ReturnRatingStatByUser" : data}
         result = merge(result, data)
         return json.dumps(result) 
     else: 
         data = {"ReturnRatingStatByUser" : "none"}
+        result = merge(result, data)
+        return result 
+    
+def profile(uid):
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    kd = { 0: 'name', 1: 'position', 2: 'email', 3: 'phone', 4: 'role', 5: 'dep', 6: 'status' }
+
+    cur.callproc('ReturnUserData', [uid])
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd)
+        data = { "ReturnUserData" : data}
+        result = merge(result, data)
+        return json.dumps(result) 
+    else: 
+        data = {"ReturnUserData" : "none"}
+        result = merge(result, data)
+        return result 
+    
+def users():
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    kd = { 0: 'id', 1: 'internal_num', 2: 'name', 3: 'dep', 4: 'position', 5: 'isVerified', 6: 'status' }
+
+    cur.callproc('ReturnListOfAllUsers')
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd)
+        data = { "ReturnListOfAllUsers" : data}
+        result = merge(result, data)
+        return json.dumps(result) 
+    else: 
+        data = {"ReturnListOfAllUsers" : "none"}
+        result = merge(result, data)
+        return result 
+    
+def roles():
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    kd = { 0: 'role', 1: 'kol' }
+
+    cur.callproc('ReturnListOfRoles')
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd)
+        data = { "ReturnListOfRoles" : data}
+        result = merge(result, data)
+        return json.dumps(result) 
+    else: 
+        data = {"ReturnListOfRoles" : "none"}
+        result = merge(result, data)
+        return result 
+    
+def deps():
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    kd = { 0: 'dep', 1: 'kol' }
+
+    cur.callproc('ReturnListOfDeps')
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd)
+        data = { "ReturnListOfDeps" : data}
+        result = merge(result, data)
+        return json.dumps(result) 
+    else: 
+        data = {"ReturnListOfDeps" : "none"}
+        result = merge(result, data)
+        return result 
+    
+def statuses():
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    kd = { 0: 'id', 1: 'status' }
+
+    cur.callproc('ReturnAllStatuses')
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd)
+        data = { "ReturnAllStatuses" : data}
+        result = merge(result, data)
+        return json.dumps(result) 
+    else: 
+        data = {"ReturnAllStatuses" : "none"}
+        result = merge(result, data)
+        return result 
+    
+def priorities():
+    
+    result = {}
+    
+    cur = mysql.connect().cursor()
+
+    kd = { 0: 'id', 1: 'priority' }
+
+    cur.callproc('ReturnListOfPriorities')
+    df_sql_data = pd.DataFrame(cur.fetchall())
+    if not df_sql_data.empty:
+        data = df_sql_data.to_dict('index')
+        data = replace_keys(data, kd)
+        data = { "ReturnListOfPriorities" : data}
+        result = merge(result, data)
+        return json.dumps(result) 
+    else: 
+        data = {"ReturnListOfPriorities" : "none"}
         result = merge(result, data)
         return result 

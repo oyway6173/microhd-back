@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: users
+  labels: 
+    app: users
+spec: 
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: users
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 8
+  template: 
+    metadata:
+      labels:
+        app: users
+    spec: 
+      containers:
+        - name: users
+          image: oyway6173/users
+          envFrom:
+            - configMapRef:
+                name: users-configmap
+            - secretRef:
+                name: users-secret

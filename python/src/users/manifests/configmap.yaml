@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: users-configmap
+data:
+  USERS_QUEUE: "users"
+  MYSQL_HOST: host.minikube.internal
+  MYSQL_USER: users_user
+  MYSQL_DB: users_srv_db
+  MYSQL_PORT: "3306"
